@@ -24,7 +24,7 @@ func main() {
 		router := mux.NewRouter().StrictSlash(true)
 		router.HandleFunc("/", Index)
 		router.HandleFunc("/data", DataCreate)
-		router.HandleFunc("/data/{dataId}", DataShow)
+		router.HandleFunc("/data/{deviceID}", DataShow)
 		logrus.Fatal(http.ListenAndServe("0.0.0.0:6060", router))
 		return nil
 	}
@@ -33,6 +33,16 @@ func main() {
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
+	datas, err := GetDatas()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		_, err := io.WriteString(w, "Get datas from database failed")
+		if err != nil {
+			panic(err)
+		}
+
+	}
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(datas); err != nil {
@@ -41,8 +51,16 @@ func Index(w http.ResponseWriter, r *http.Request) {
 }
 
 func DataCreate(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		_, err := io.WriteString(w, "Please use POST method")
+		if err != nil {
+			panic(err)
+		}
+	}
 
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
 		panic(err)
 	}
@@ -51,17 +69,48 @@ func DataCreate(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	d := RepoCreateData(Data{Value: string(body[:])})
+	token := r.Header.Get("TOKEN")
+	if token == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		_, err := io.WriteString(w, "Please add TOKEN in http Header")
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	d, err := RepoCreateData(body, token)
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		_, err := io.WriteString(w, fmt.Sprintf("ERROR: %v\n", err))
+		if err != nil {
+			panic(err)
+		}
+		return
+	}
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(d); err != nil {
 		panic(err)
 	}
-
 }
 
 func DataShow(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	dataID := vars["dataId"]
-	fmt.Fprintln(w, "Data Show:", dataID)
+	deviceID := vars["deviceID"]
+	datas, err := GetDataByDeviceID(deviceID)
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		_, err := io.WriteString(w, "Get data from database failed")
+		if err != nil {
+			panic(err)
+		}
+	}
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(datas); err != nil {
+		panic(err)
+	}
 }

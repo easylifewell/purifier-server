@@ -1,40 +1,36 @@
 package main
 
-import "fmt"
+import (
+	"encoding/json"
+	"errors"
+	"time"
+)
 
-var currentID int
-var datas Datas
-
-// Give us some seed data
-func init() {
-	RepoCreateData(Data{Value: "default vaule1"})
-	RepoCreateData(Data{Value: "default vaule2"})
-}
-
-func RepoFindData(id int) Data {
-	for _, d := range datas {
-		if d.DeviceID == id {
-			return d
-		}
-	}
-	// return empty Data if not found
-	return Data{}
-}
-
-func RepoCreateData(d Data) Data {
-	currentID++
-	d.DeviceID = currentID
-	datas = append(datas, d)
-	return d
-}
-
-func RepoDestroyData(id int) error {
-	for i, d := range datas {
-		if d.DeviceID == id {
-			datas = append(datas[:i], datas[i+1:]...)
-			return nil
-		}
+func RepoCreateData(body []byte, token string) (Data, error) {
+	var data Data
+	key1 := "Edb^@u2T"
+	key2 := "aZEqm5ph"
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		return data, err
 	}
 
-	return fmt.Errorf("could not find Data with id of %d to delete", id)
+	if data.Version != "0.1" {
+		return data, errors.New("bad version data")
+	}
+
+	if len(data.DeviceID) != 8 {
+		return data, errors.New("DeviceID must be 8 length of digital")
+	}
+	t := "VIEW" + key1 + data.DeviceID + key2
+	if t != token {
+		return data, errors.New("TOKEN is invalid")
+	}
+	data.Time = time.Now()
+
+	_, err = AddData(data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }

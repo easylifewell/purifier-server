@@ -11,18 +11,15 @@ const (
 	URL = "127.0.0.1:27017"
 )
 
-type Datas []Data
-
 type Data struct {
 	ID       bson.ObjectId `json:"_id" bson:"_id"`
 	Version  string        `json:"Version" bson:"version"`
-	DeviceID int           `json:"ID" bson:"device_id"`
+	DeviceID string        `json:"ID" bson:"device_id"`
 	Temp     float64       `json:"TEMP" bson:"temperature"`
 	Humi     float64       `json:"HUMI" bson:"humidity"`
 	Form     float64       `json:"FORM" bson:"formaldehyde"`
 	Pm25     float64       `json:"PM2.5" bson:"pm25"`
 	Time     time.Time     `bson:"time"`
-	Value    string
 }
 
 var (
@@ -55,16 +52,16 @@ func witchCollection(collection string, s func(*mgo.Collection) error) error {
 }
 
 // AddData 添加Data对象
-func AddData(p Data) string {
+func AddData(p Data) (string, error) {
 	p.ID = bson.NewObjectId()
 	query := func(c *mgo.Collection) error {
 		return c.Insert(p)
 	}
 	err := witchCollection(collection, query)
 	if err != nil {
-		return "false"
+		return "", err
 	}
-	return p.ID.Hex()
+	return p.ID.Hex(), nil
 }
 
 // GetDataByID 获取一条记录通过objectid
@@ -78,17 +75,30 @@ func GetDataByID(id string) *Data {
 	return data
 }
 
+// GetDataByDeviceID 根据设备ID获取数据
+func GetDataByDeviceID(deviceID string) ([]Data, error) {
+	var datas []Data
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"device_id": deviceID}).All(&datas)
+	}
+	err := witchCollection(collection, query)
+	if err != nil {
+		return datas, err
+	}
+	return datas, nil
+}
+
 // GetDatas 获取所有的data数据
-func GetDatas() []Data {
+func GetDatas() ([]Data, error) {
 	var datas []Data
 	query := func(c *mgo.Collection) error {
 		return c.Find(nil).All(&datas)
 	}
 	err := witchCollection(collection, query)
 	if err != nil {
-		return datas
+		return datas, err
 	}
-	return datas
+	return datas, nil
 }
 
 // UpdateData 更新data数据
