@@ -58,6 +58,7 @@ func DataCreate(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+		return
 	}
 
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
@@ -77,6 +78,7 @@ func DataCreate(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+		return
 	}
 
 	d, err := RepoCreateData(body, token)
