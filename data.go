@@ -12,7 +12,7 @@ const (
 )
 
 type Data struct {
-	ID       bson.ObjectId `json:"_id" bson:"_id"`
+	ID       bson.ObjectId `bson:"_id"`
 	Version  string        `json:"Version" bson:"version"`
 	DeviceID string        `json:"ID" bson:"device_id"`
 	Temp     float64       `json:"TEMP" bson:"temperature"`
