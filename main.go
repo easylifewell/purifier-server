@@ -22,6 +22,8 @@ func main() {
 		router := mux.NewRouter().StrictSlash(true)
 		// Get a DataController instance.
 		dc := controller.NewDataController()
+		// Get a UserController instance.
+		uc := controller.NewUserController()
 
 		router.HandleFunc("/", dc.Index)
 		router.HandleFunc("/data", dc.DataCreate)
