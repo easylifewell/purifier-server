@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"context"
 	"github.com/easylifewell/purifier-server/sms"
 	"github.com/gorilla/mux"
 	"net/http"
+	"time"
 )
 
 type SMSController struct {
@@ -21,7 +23,7 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 		cancel context.CancelFunc
 	)
 
-	timeout, err := time.ParseDuration(req.FormValue("timeout"))
+	timeout, err := time.ParseDuration(r.FormValue("timeout"))
 	if err == nil {
 		// The request has a timeout, so create a context that is
 		// canceled automatically when the timeout expires
@@ -33,7 +35,7 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	phone := vars["phone"]
 	code := vars["code"]
-	err := sms.SendSMS(ctx, phone, code)
+	err = sms.SendSMS(ctx, phone, code)
 	if err != nil {
 		log.Print(err)
 		return
