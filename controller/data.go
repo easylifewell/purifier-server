@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/easylifewell/purifier-server/model"
-	"github.com/easylifewell/purifier-server/store"
-	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/easylifewell/purifier-server/model"
+	"github.com/easylifewell/purifier-server/store"
+	"github.com/gorilla/mux"
 )
 
 type DataController struct {

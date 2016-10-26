@@ -1,9 +1,10 @@
 package store
 
 import (
-	"github.com/easylifewell/purifier-server/model"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+
+	"github.com/easylifewell/purifier-server/model"
 )
 
 // AddData 添加Data对象

@@ -2,10 +2,12 @@ package controller
 
 import (
 	"context"
-	"github.com/easylifewell/purifier-server/sms"
-	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"time"
+
+	"github.com/easylifewell/purifier-server/sms"
+	"github.com/gorilla/mux"
 )
 
 type SMSController struct {
