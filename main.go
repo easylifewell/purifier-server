@@ -23,7 +23,8 @@ func main() {
 		// Get a DataController instance.
 		dc := controller.NewDataController()
 		// Get a UserController instance.
-		uc := controller.NewUserController()
+		// uc := controller.NewUserController()
+		// Get a SMSController instance
 		sc := controller.NewSMSController()
 
 		router.HandleFunc("/", dc.Index)
