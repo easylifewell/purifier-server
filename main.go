@@ -24,10 +24,12 @@ func main() {
 		dc := controller.NewDataController()
 		// Get a UserController instance.
 		uc := controller.NewUserController()
+		sc := controller.NewSMSController()
 
 		router.HandleFunc("/", dc.Index)
 		router.HandleFunc("/data", dc.DataCreate)
 		router.HandleFunc("/data/{deviceID}", dc.DataShow)
+		router.HandleFunc("/sms/{phone}/{code}", sc.SendSMS)
 
 		logrus.Fatal(http.ListenAndServe("0.0.0.0:6060", router))
 		return nil
