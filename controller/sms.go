@@ -2,13 +2,18 @@ package controller
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/easylifewell/purifier-server/sms"
 	"github.com/gorilla/mux"
+)
+
+var (
+	Phone = regexp.MustCompile("^1[3|4|5|7|8][0-9]{9}$")
 )
 
 type SMSController struct {
@@ -37,10 +42,21 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 	defer cancel() // Cancel ctx as soon as handleSearch returns
 	vars := mux.Vars(r)
 	phone := vars["phone"]
-	code := fmt.Sprintf("%d", rand.Int31())[2:6]
-	err = sms.SendSMS(ctx, phone, code)
-	if err != nil {
-		log.Print(err)
+	if !Phone.MatchString(phone) {
+		Response400(w, "无效的手机号码")
 		return
 	}
+
+	code := fmt.Sprintf("%d", rand.Int31())[2:6]
+	respCode, err := sms.SendSMS(ctx, phone, code)
+	if err != nil {
+		Response500(w, err.Error())
+		return
+	}
+
+	if respCode != "000000" {
+		Response500(w, "短信发送失败")
+		return
+	}
+	Response200(w, "短信发送成功")
 }

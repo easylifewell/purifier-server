@@ -30,7 +30,7 @@ func main() {
 		router.HandleFunc("/", dc.Index)
 		router.HandleFunc("/data", dc.DataCreate)
 		router.HandleFunc("/data/{deviceID}", dc.DataShow)
-		router.HandleFunc("/sms/{phone}/{code}", sc.SendSMS)
+		router.HandleFunc("/api/sms/{phone}", sc.SendSMS)
 
 		logrus.Fatal(http.ListenAndServe("0.0.0.0:6060", router))
 		return nil

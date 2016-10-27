@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"regexp"
 	"time"
 )
 
@@ -18,10 +17,6 @@ const (
 	SID        = "588379b7b6c442b674187e6de5ae8b9c"
 	TOKEN      = "6c8cc0cd398a133c0000b6d64578ff22"
 	TEMPLATEID = "30048"
-)
-
-var (
-	Phone = regexp.MustCompile("^1[3|4|5|7|8][0-9]{9}$")
 )
 
 type Sms struct {
@@ -33,10 +28,19 @@ type Sms struct {
 	} `json:"templateSMS"`
 }
 
-func SendSMS(ctx context.Context, phone, code string) error {
-	if !Phone.MatchString(phone) {
-		return errors.New("无效的手机号码")
-	}
+type SmsResp struct {
+	Resp struct {
+		RespCode    string `json:"respCode"`
+		Failure     int    `json:"failure"`
+		TemplateSMS struct {
+			CreateDate int    `json:"createData"`
+			SmsID      string `json:"smdId"`
+		} `json:"templateSMS"`
+	} `json:"resp"`
+}
+
+// SendSMS 发送短信，返回服务器的响应码
+func SendSMS(ctx context.Context, phone, code string) (string, error) {
 	// http://docs.ucpaas.com/doku.php?id=%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81:rest_yz
 	t := time.Now()
 	now := fmt.Sprintf("%d%02d%02d%02d%02d%02d", t.Year(), t.Month(), t.Day(),
@@ -54,25 +58,32 @@ func SendSMS(ctx context.Context, phone, code string) error {
 	buf = new(bytes.Buffer)
 	err := json.NewEncoder(buf).Encode(sms)
 	if err != nil {
-		return err
+		return "", err
 	}
 	URL := fmt.Sprintf("https://api.ucpaas.com/2014-06-30/Accounts/%s/Messages/templateSMS?sig=%s", SID, sig)
 	req, err := http.NewRequest("POST", URL, buf)
 	if err != nil {
-		return err
+		return "", err
 	}
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json;charset=utf-8")
 	req.Header.Add("Authorization", auth)
+	var respCode string
 	err = httpDo(ctx, req, func(resp *http.Response, err error) error {
 		if err != nil {
 			return err
 		}
 		defer resp.Body.Close()
+
+		var data SmsResp
+		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+			return err
+		}
+		respCode = data.Resp.RespCode
 		return nil
 	})
 
-	return err
+	return respCode, err
 }
 
 func httpDo(ctx context.Context, req *http.Request, f func(*http.Response, error) error) error {
