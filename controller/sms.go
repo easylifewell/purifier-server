@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -36,7 +37,7 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 	defer cancel() // Cancel ctx as soon as handleSearch returns
 	vars := mux.Vars(r)
 	phone := vars["phone"]
-	code := vars["code"]
+	code := fmt.Sprintf("%d", rand.Int31())[2:6]
 	err = sms.SendSMS(ctx, phone, code)
 	if err != nil {
 		log.Print(err)
