@@ -6,10 +6,13 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/easylifewell/purifier-server/store"
 )
 
 const (
@@ -39,8 +42,64 @@ type SmsResp struct {
 	} `json:"resp"`
 }
 
+func SendSMS(ctx context.Context, phone, code string, isGuest bool) (string, error) {
+	if isGuest {
+		return sendSMSForGuest(ctx, phone, code)
+	} else {
+		return sendSMSForUser(ctx, phone, code)
+	}
+}
+
+// sendSMSForGuest 首次登录发送验证码的函数
+func sendSMSForGuest(ctx context.Context, phone, code string) (string, error) {
+	guest := store.GetGuestByPhone(phone) // ??
+
+	now := time.Now()
+	// 第一次发送
+	if guest.Phone == "" {
+		guest.SMSCode = code
+		guest.SMSSendDate = now
+		guest.Phone = phone
+		guest.SMSChangeDate = now.Add(time.Duration(time.Minute * 5))
+		store.AddGuest(*guest)
+		return sendSMS(ctx, phone, code)
+	}
+
+	// 短信过期，再次发送
+	if now.Sub(guest.SMSChangeDate) >= 0 {
+		guest.SMSCode = code
+		guest.SMSSendDate = now
+		guest.Phone = phone
+		guest.SMSChangeDate = now.Add(time.Duration(time.Minute * 5))
+		store.UpdateGuest(*guest)
+		return sendSMS(ctx, phone, code)
+	}
+
+	// 60s 内不允许再次发送短信
+	sendover := now.Sub(guest.SMSSendDate)
+	if sendover < time.Duration(time.Minute) {
+		return "", errors.New(fmt.Sprintf("请%f s后再次发送", sendover.Seconds()))
+	} else {
+		// 60s后再次发送
+		guest.SMSChangeDate = now
+		guest.SMSCode = code
+		guest.Phone = phone
+		guest.SMSChangeDate = now.Add(time.Duration(time.Minute * 5))
+		store.UpdateGuest(*guest)
+		return sendSMS(ctx, phone, code)
+	}
+
+}
+
+// sendSMSForUser 非首次登录发送验证码的函数
+func sendSMSForUser(ctx context.Context, phone, code string) (string, error) {
+	//user := store.GetUserByPhone(phone)
+	// 等把GUEST调通了，这个类似
+	return "", nil
+}
+
 // SendSMS 发送短信，返回服务器的响应码
-func SendSMS(ctx context.Context, phone, code string) (string, error) {
+func sendSMS(ctx context.Context, phone, code string) (string, error) {
 	// http://docs.ucpaas.com/doku.php?id=%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81:rest_yz
 	t := time.Now()
 	now := fmt.Sprintf("%d%02d%02d%02d%02d%02d", t.Year(), t.Month(), t.Day(),

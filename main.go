@@ -30,7 +30,10 @@ func main() {
 		router.HandleFunc("/", dc.Index)
 		router.HandleFunc("/data", dc.DataCreate)
 		router.HandleFunc("/data/{deviceID}", dc.DataShow)
-		router.HandleFunc("/api/sms/{phone}", sc.SendSMS)
+
+		//  登录的第一个步骤，发送登录验证码给手机号码
+		router.HandleFunc("/api/login/{phone}", sc.SendSMS)
+		router.HandleFunc("/api/login/checkSms/{phone}/{smscode}", sc.CheckSMS)
 
 		logrus.Fatal(http.ListenAndServe("0.0.0.0:6060", router))
 		return nil

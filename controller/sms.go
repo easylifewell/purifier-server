@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/easylifewell/purifier-server/sms"
+	"github.com/easylifewell/purifier-server/store"
 	"github.com/gorilla/mux"
 )
 
@@ -47,8 +48,17 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var isGuest bool
+	user := store.GetUserByPhone(phone)
+	fmt.Printf("[SMS MESSAGE] user: %v\n", user)
+	if user.Phone == "" {
+		isGuest = true
+	} else {
+		isGuest = false
+	}
+	fmt.Printf("[SMS MESSAGE] isGuest: %v\n", isGuest)
 	code := fmt.Sprintf("%d", rand.Int31())[2:6]
-	respCode, err := sms.SendSMS(ctx, phone, code)
+	respCode, err := sms.SendSMS(ctx, phone, code, isGuest)
 	if err != nil {
 		Response500(w, err.Error())
 		return
@@ -59,4 +69,7 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	Response200(w, "短信发送成功")
+}
+
+func (dc SMSController) CheckSMS(w http.ResponseWriter, r *http.Request) {
 }
