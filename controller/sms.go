@@ -24,6 +24,40 @@ func NewSMSController() *SMSController {
 	return &SMSController{}
 }
 
+func (dc SMSController) CheckSMS(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	phone := vars["phone"]
+	smscode := vars["smscode"]
+
+	if phone == "" || smscode == "" {
+		Response400(w, "请求参数不全")
+		return
+	}
+	if !Phone.MatchString(phone) {
+		Response400(w, "无效的手机号码")
+		return
+	}
+
+	user := store.GetUserByPhone(phone)
+	var err error
+	if user.Phone == "" {
+		if *user, err = store.RegisterWithSMS(phone, smscode); err != nil {
+			Response500(w, err.Error())
+			return
+		}
+
+	} else {
+		*user, err = store.CheckSMSCode(fmt.Sprintf("%d", user.SID), smscode)
+		if err != nil {
+			Response500(w, err.Error())
+			return
+		}
+	}
+	// 登陆成功，返回cookie
+	Response200(w, "登陆成功")
+	return
+}
+
 func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 	// ctx is the Context for this handler. Calling cancel closes the ctx.Done
 	// channel, which is the cancellation signal for requests started by this handler.
@@ -69,7 +103,4 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	Response200(w, "短信发送成功")
-}
-
-func (dc SMSController) CheckSMS(w http.ResponseWriter, r *http.Request) {
 }

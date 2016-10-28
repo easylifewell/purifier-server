@@ -52,7 +52,7 @@ func SendSMS(ctx context.Context, phone, code string, isGuest bool) (string, err
 
 // sendSMSForGuest 首次登录发送验证码的函数
 func sendSMSForGuest(ctx context.Context, phone, code string) (string, error) {
-	guest := store.GetGuestByPhone(phone) // ??
+	guest := store.GetGuestByPhone(phone)
 
 	now := time.Now()
 	// 第一次发送
@@ -93,9 +93,32 @@ func sendSMSForGuest(ctx context.Context, phone, code string) (string, error) {
 
 // sendSMSForUser 非首次登录发送验证码的函数
 func sendSMSForUser(ctx context.Context, phone, code string) (string, error) {
-	//user := store.GetUserByPhone(phone)
-	// 等把GUEST调通了，这个类似
-	return "", nil
+	user := store.GetUserByPhone(phone)
+
+	now := time.Now()
+	// 短信过期，再次发送
+	if now.Sub(user.SMSChangeDate) >= 0 {
+		user.SMSCode = code
+		user.SMSSendDate = now
+		user.Phone = phone
+		user.SMSChangeDate = now.Add(time.Duration(time.Minute * 5))
+		store.UpdateUser(*user)
+		return sendSMS(ctx, phone, code)
+	}
+
+	// 60s 内不允许再次发送短信
+	sendover := now.Sub(user.SMSSendDate)
+	if sendover < time.Duration(time.Minute) {
+		return "", errors.New(fmt.Sprintf("请%f s后再次发送", sendover.Seconds()))
+	} else {
+		// 60s后再次发送
+		user.SMSChangeDate = now
+		user.SMSCode = code
+		user.Phone = phone
+		user.SMSChangeDate = now.Add(time.Duration(time.Minute * 5))
+		store.UpdateUser(*user)
+		return sendSMS(ctx, phone, code)
+	}
 }
 
 // SendSMS 发送短信，返回服务器的响应码

@@ -1,7 +1,7 @@
 package model
 
 var (
-	anaimal = []string{
+	Animal = []string{
 		"鼹鼠",
 		"鼩鼱",
 		"鼩鼱总科",
