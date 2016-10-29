@@ -2,8 +2,11 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
+	"time"
 )
 
 type ReturnInfo struct {
@@ -43,4 +46,11 @@ func ResponseWithJSON(w http.ResponseWriter, json []byte, code int) {
 	w.Header().Set("Content-Type", "application/json;charset=utf-8")
 	w.WriteHeader(code)
 	w.Write(json)
+}
+
+// getRandomCode 获取随机的验证吗
+func getRandomCode() string {
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+	return fmt.Sprintf("%d", r1.Int31())[2:6]
 }

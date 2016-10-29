@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"time"
@@ -90,8 +89,10 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 	} else {
 		isGuest = false
 	}
-	fmt.Printf("[SMS MESSAGE] isGuest: %v\n", isGuest)
-	code := fmt.Sprintf("%d", rand.Int31())[2:6]
+
+	// Get the random code
+	code := getRandomCode()
+	fmt.Printf("[SMS MESSAGE] isGuest: %v, code = %v\n", isGuest, code)
 	respCode, err := sms.SendSMS(ctx, phone, code, isGuest)
 	if err != nil {
 		Response500(w, err.Error())
