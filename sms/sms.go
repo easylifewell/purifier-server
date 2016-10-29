@@ -81,7 +81,7 @@ func sendSMSForGuest(ctx context.Context, phone, code string) (string, error) {
 		return "", errors.New(fmt.Sprintf("请%f s后再次发送", sendover.Seconds()))
 	} else {
 		// 60s后再次发送
-		guest.SMSChangeDate = now
+		guest.SMSSendDate = now
 		guest.SMSCode = code
 		guest.Phone = phone
 		guest.SMSChangeDate = now.Add(time.Duration(time.Minute * 5))
@@ -98,31 +98,45 @@ func sendSMSForUser(ctx context.Context, phone, code string) (string, error) {
 	now := time.Now()
 	// 短信过期，再次发送
 	if now.Sub(user.SMSChangeDate) >= 0 {
+		fmt.Println("短信过期，再次发送")
 		user.SMSCode = code
 		user.SMSSendDate = now
 		user.Phone = phone
 		user.SMSChangeDate = now.Add(time.Duration(time.Minute * 5))
-		store.UpdateUser(*user)
+		if _, err := store.UpdateUser(*user); err != nil {
+			return "", err
+		}
 		return sendSMS(ctx, phone, code)
 	}
 
 	// 60s 内不允许再次发送短信
 	sendover := now.Sub(user.SMSSendDate)
+	fmt.Println("now:", now)
+	fmt.Println("sendate:", user.SMSSendDate)
 	if sendover < time.Duration(time.Minute) {
 		return "", errors.New(fmt.Sprintf("请%f s后再次发送", sendover.Seconds()))
 	} else {
+		fmt.Printf("60s后，再次发送 sendover = %v\n", sendover)
 		// 60s后再次发送
-		user.SMSChangeDate = now
+		user.SMSSendDate = now
 		user.SMSCode = code
 		user.Phone = phone
 		user.SMSChangeDate = now.Add(time.Duration(time.Minute * 5))
-		store.UpdateUser(*user)
+		if _, err := store.UpdateUser(*user); err != nil {
+			return "", err
+		}
 		return sendSMS(ctx, phone, code)
 	}
 }
 
 // SendSMS 发送短信，返回服务器的响应码
 func sendSMS(ctx context.Context, phone, code string) (string, error) {
+
+	// just for test
+	if phone == "18901030365" || phone == "13641309915" {
+		return "000000", nil
+	}
+
 	// http://docs.ucpaas.com/doku.php?id=%E7%9F%AD%E4%BF%A1%E9%AA%8C%E8%AF%81:rest_yz
 	t := time.Now()
 	now := fmt.Sprintf("%d%02d%02d%02d%02d%02d", t.Year(), t.Month(), t.Day(),

@@ -1,12 +1,17 @@
 package controller
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
+
+	_ "github.com/Sirupsen/logrus"
+	"github.com/easylifewell/purifier-server/store"
 )
 
 type ReturnInfo struct {
@@ -53,4 +58,25 @@ func getRandomCode() string {
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
 	return fmt.Sprintf("%d", r1.Int31())[2:6]
+}
+
+// isLogin  判断用户是否登录
+func isLogin(r *http.Request) (string, bool) {
+	cookie, err := r.Cookie("UIDC")
+	if err != nil {
+		return "", false
+	}
+	// decode the UIDC
+	UIDC, err := base64.StdEncoding.DecodeString(cookie.Value)
+	if err != nil {
+		return "", false
+	}
+
+	fileds := strings.Split(string(UIDC), "_")
+	phone := fileds[len(fileds)-1]
+	user := store.GetUserByPhone(phone)
+	if user.Phone == phone && user.Token == cookie.Value {
+		return phone, true
+	}
+	return "", false
 }

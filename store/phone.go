@@ -2,12 +2,14 @@ package store
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/easylifewell/purifier-server/model"
 )
 
-func register(guest model.Guest) (model.User, error) {
+func register(guest *model.Guest) (*model.User, error) {
 	lastUser := GetLastUser()
 	var id int64
 	id = 1
@@ -15,7 +17,7 @@ func register(guest model.Guest) (model.User, error) {
 		id = lastUser.SID + 1
 		lastUser.LastUser = false
 		if _, err := UpdateUser(*lastUser); err != nil {
-			return *lastUser, errors.New("注册用户失败")
+			return lastUser, errors.New("注册用户失败")
 		}
 	}
 	user := new(model.User)
@@ -32,17 +34,17 @@ func register(guest model.Guest) (model.User, error) {
 	user.LastUser = true
 
 	if _, err := AddUser(*user); err != nil {
-		return *user, errors.New("注册用户失败")
+		return user, errors.New("注册用户失败")
 	}
 
-	return *user, nil
+	return user, nil
 }
 
-func RegisterWithSMS(phone, smscode string) (model.User, error) {
+func RegisterWithSMS(phone, smscode string) (*model.User, error) {
 	unused := new(model.User)
 	guest, err := checkSMSForGuest(phone, smscode)
 	if err != nil {
-		return *unused, err
+		return unused, err
 	}
 
 	//  向数据库中添加User
@@ -50,30 +52,37 @@ func RegisterWithSMS(phone, smscode string) (model.User, error) {
 
 }
 
-func CheckSMSCode(sid, smscode string) (model.User, error) {
-	user := GetUserBySID(sid)
+func CheckSMSCode(sid, smscode string) (*model.User, error) {
+	s, err := strconv.ParseInt(sid, 10, 64)
+	if err != nil {
+		return nil, errors.New("解析用户id错误")
+	}
+	user := GetUserBySID(s)
 	now := time.Now()
 
+	fmt.Printf("user = %v\n", user)
+	fmt.Printf("now = %v\n", now)
+	fmt.Printf("changedate = %v\n", user.SMSChangeDate)
 	if now.Sub(user.SMSChangeDate) >= 0 {
-		return *user, errors.New("短信验证码已过期")
+		return user, errors.New("短信验证码已过期")
 	}
 
 	if user.SMSCode != smscode {
-		return *user, errors.New("短信验证码不正确")
+		return user, errors.New("短信验证码不正确")
 	}
-	return *user, nil
+	return user, nil
 }
 
-func checkSMSForGuest(phone, smscode string) (model.Guest, error) {
+func checkSMSForGuest(phone, smscode string) (*model.Guest, error) {
 	guest := GetGuestByPhone(phone)
 	now := time.Now()
 
 	if now.Sub(guest.SMSChangeDate) >= 0 {
-		return *guest, errors.New("短信验证码已过期")
+		return guest, errors.New("短信验证码已过期")
 	}
 
 	if guest.SMSCode != smscode {
-		return *guest, errors.New("短信验证码不正确")
+		return guest, errors.New("短信验证码不正确")
 	}
-	return *guest, nil
+	return guest, nil
 }

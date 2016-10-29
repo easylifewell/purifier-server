@@ -1,10 +1,9 @@
 package store
 
 import (
+	"github.com/easylifewell/purifier-server/model"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-
-	"github.com/easylifewell/purifier-server/model"
 )
 
 // AddUser 添加User对象
@@ -32,7 +31,7 @@ func UpdateUser(p model.User) (string, error) {
 	return p.ID.Hex(), nil
 }
 
-func GetUserBySID(sid string) *model.User {
+func GetUserBySID(sid int64) *model.User {
 	user := new(model.User)
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"sid": sid}).One(&user)
