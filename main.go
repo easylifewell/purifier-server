@@ -53,6 +53,11 @@ func main() {
 	app.Action = func(c *cli.Context) error {
 		router := mux.NewRouter().StrictSlash(true)
 
+		// View Files
+		router.PathPrefix("/app/").Handler(http.StripPrefix("/app/", http.FileServer(http.Dir("./view"))))
+		// Static Files
+		router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+
 		// Get a DataController instance.
 		dc := controller.NewDataController()
 		router.HandleFunc("/", dc.Index)
