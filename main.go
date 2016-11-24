@@ -81,6 +81,23 @@ func main() {
 		router.HandleFunc("/api/user/setting", uc.SetNickName).Queries("nickname", "{nickname}")
 		router.HandleFunc("/api/user/setting", uc.SetRealName).Queries("realname", "{realname}")
 
+		// Get a DeviceController instance
+		deviceController := controller.NewDeviceController()
+		router.HandleFunc("/api/device/add", deviceController.BindDeviceWithUser).
+			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}")
+		router.HandleFunc("/api/device/started", deviceController.IsStarted).
+			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}")
+		router.HandleFunc("/api/device/on", deviceController.On).
+			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}")
+		router.HandleFunc("/api/device/off", deviceController.Off).
+			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}")
+		router.HandleFunc("/api/device/setting", deviceController.SetCarName).
+			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}", "carname", "{carname}")
+		router.HandleFunc("/api/device/setting", deviceController.SetSPhone).
+			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}", "sphone", "{sphone[0-9]+}")
+		router.HandleFunc("/api/device/setting", deviceController.SetRPhone).
+			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}", "rphone", "{rphone[0-9]}+")
+
 		// Start the server
 		addr := fmt.Sprintf("0.0.0.0:%s", c.GlobalString("port"))
 		logrus.Infof("Server started and Listened on %s", addr)
