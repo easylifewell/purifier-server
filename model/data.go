@@ -13,6 +13,5 @@ type Data struct {
 	Temp     float64       `json:"TEMP" bson:"temperature"`
 	Humi     float64       `json:"HUMI" bson:"humidity"`
 	Form     float64       `json:"FORM" bson:"formaldehyde"`
-	Pm25     float64       `json:"PM2.5" bson:"pm25"`
 	Time     time.Time     `bson:"time"`
 }
