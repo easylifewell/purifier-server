@@ -11,4 +11,5 @@ type Guest struct {
 	SMSCode       string        `json:"sms_code" bson:"sms_code"`
 	SMSSendDate   time.Time     `json:"sms_send_date" bson:"sms_send_date"`
 	SMSChangeDate time.Time     `json:"sms_change_date" bson:"sms_change_date"`
+	Password      string        `json:"password" bson:"password"`
 }

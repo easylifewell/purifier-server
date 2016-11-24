@@ -66,10 +66,14 @@ func main() {
 
 		// Get a SMSController instance
 		sc := controller.NewSMSController()
-		//  登录的第一个步骤，发送登录验证码给手机号码
-		router.HandleFunc("/api/login/{phone:[0-9]+}", sc.SendSMS)
-		//  登录的第二个步骤，进行验证
-		router.HandleFunc("/api/login/checkSms", sc.CheckSMS).Queries("phone", "{phone:[0-9]+}", "smscode", "{smscode:[0-9]+}")
+		// 正常使用密码登录
+		router.HandleFunc("/api/login", sc.Login).
+			Queries("phone", "{phone:[0-9]+}", "password", "{password:.{6,20}}")
+		//  发送登录验证码给手机号码
+		router.HandleFunc("/api/sms/{phone:[0-9]+}", sc.SendSMS)
+		//  注册并登录进行，此时保存密码
+		router.HandleFunc("/api/register", sc.Register).
+			Queries("phone", "{phone:[0-9]+}", "smscode", "{smscode:[0-9]+}", "password", "{password:.{6,20}}")
 
 		// Get a UserController instance.
 		uc := controller.NewUserController()

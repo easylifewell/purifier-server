@@ -27,6 +27,7 @@ func register(guest *model.Guest) (*model.User, error) {
 	user.SMSSendDate = guest.SMSSendDate
 	user.NickName = GetNickName()
 	user.RealName = ""
+	user.Password = guest.Password
 	user.CreateDate = time.Now()
 	user.LoginDate = time.Now()
 	user.Email = ""
@@ -40,19 +41,38 @@ func register(guest *model.Guest) (*model.User, error) {
 	return user, nil
 }
 
-func RegisterWithSMS(phone, smscode string) (*model.User, error) {
+func Register(phone, smscode, password string) (*model.User, error) {
 	unused := new(model.User)
 	guest, err := checkSMSForGuest(phone, smscode)
 	if err != nil {
 		return unused, err
 	}
+	guest.Password = password
 
 	//  向数据库中添加User
 	return register(guest)
 
 }
 
-func CheckSMSCode(sid, smscode string) (*model.User, error) {
+func Login(sid, password string) (*model.User, error) {
+	s, err := strconv.ParseInt(sid, 10, 64)
+	if err != nil {
+		return nil, errors.New("解析用户id错误")
+	}
+	user := GetUserBySID(s)
+	now := time.Now()
+
+	fmt.Printf("user = %v\n", user)
+	fmt.Printf("now = %v\n", now)
+
+	if user.Password != password {
+		return user, errors.New("密码错误")
+	}
+
+	return user, nil
+}
+
+func ForgetPassword(sid, smscode, password string) (*model.User, error) {
 	s, err := strconv.ParseInt(sid, 10, 64)
 	if err != nil {
 		return nil, errors.New("解析用户id错误")
@@ -70,6 +90,12 @@ func CheckSMSCode(sid, smscode string) (*model.User, error) {
 	if user.SMSCode != smscode {
 		return user, errors.New("短信验证码不正确")
 	}
+
+	user.Password = password
+	if _, err := UpdateUser(*user); err != nil {
+		return user, errors.New("重置密码失败")
+	}
+
 	return user, nil
 }
 

@@ -32,7 +32,54 @@ func NewSMSController() *SMSController {
 	return &SMSController{}
 }
 
-func (dc SMSController) CheckSMS(w http.ResponseWriter, r *http.Request) {
+func (dc SMSController) Login(w http.ResponseWriter, r *http.Request) {
+	if phone, ok := isLogin(r); ok {
+		logrus.WithFields(logrus.Fields{
+			"user.phone": phone,
+		}).Info("利用Cookie登录成功")
+		Response200(w, "利用Cookie登录成功")
+		return
+	}
+
+	vars := mux.Vars(r)
+	phone := vars["phone"]
+	password := vars["password"]
+
+	if phone == "" || password == "" {
+		Response400(w, "请求参数不全")
+		return
+	}
+	if !Phone.MatchString(phone) {
+		Response400(w, "无效的手机号码")
+		return
+	}
+
+	if len(password) < 6 || len(password) > 20 {
+		Response400(w, "无效的密码")
+		return
+	}
+
+	user := store.GetUserByPhone(phone)
+	var err error
+	if user.Phone == "" {
+		fmt.Printf("用户 %s 尚未注册，并登录\n", user.Phone)
+		Response400(w, "尚未注册，请先进行注册")
+		return
+
+	} else {
+		fmt.Printf("用户(%s)登录\n", phone)
+		user, err = store.Login(fmt.Sprintf("%d", user.SID), password)
+		if err != nil {
+			Response500(w, err.Error())
+			return
+		}
+	}
+	// 登陆成功，返回cookie
+	createUIDC(w, r, store.GetUserByPhone(phone))
+	return
+}
+
+func (dc SMSController) Register(w http.ResponseWriter, r *http.Request) {
 	if phone, ok := isLogin(r); ok {
 		logrus.WithFields(logrus.Fields{
 			"user.phone": phone,
@@ -44,8 +91,9 @@ func (dc SMSController) CheckSMS(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	phone := vars["phone"]
 	smscode := vars["smscode"]
+	password := vars["password"]
 
-	if phone == "" || smscode == "" {
+	if phone == "" || smscode == "" || password == "" {
 		Response400(w, "请求参数不全")
 		return
 	}
@@ -54,18 +102,23 @@ func (dc SMSController) CheckSMS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(password) < 6 || len(password) > 20 {
+		Response400(w, "无效的密码")
+		return
+	}
+
 	user := store.GetUserByPhone(phone)
 	var err error
 	if user.Phone == "" {
-		fmt.Printf("用户第一次登录(%s)\n", phone)
-		if user, err = store.RegisterWithSMS(phone, smscode); err != nil {
+		fmt.Printf("用户 %s 注册，并登录\n", user.Phone)
+		if user, err = store.Register(phone, smscode, password); err != nil {
 			Response500(w, err.Error())
 			return
 		}
 
 	} else {
-		fmt.Printf("用户 %s 登录\n", user.Phone)
-		user, err = store.CheckSMSCode(fmt.Sprintf("%d", user.SID), smscode)
+		fmt.Printf("用户忘记密码(%s)，进行重置密码，并登录\n", phone)
+		user, err = store.ForgetPassword(fmt.Sprintf("%d", user.SID), smscode, password)
 		if err != nil {
 			Response500(w, err.Error())
 			return
