@@ -54,9 +54,9 @@ func main() {
 		router := mux.NewRouter().StrictSlash(true)
 
 		// View Files
-		router.PathPrefix("/app/").Handler(http.StripPrefix("/app/", http.FileServer(http.Dir("./view"))))
+		router.PathPrefix("/app").Handler(http.StripPrefix("/app", http.FileServer(http.Dir("./view"))))
 		// Static Files
-		router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+		router.PathPrefix("/static").Handler(http.StripPrefix("/static", http.FileServer(http.Dir("./static"))))
 
 		// Get a DataController instance.
 		dc := controller.NewDataController()
