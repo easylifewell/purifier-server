@@ -193,7 +193,6 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 
 	var isGuest bool
 	user := store.GetUserByPhone(phone)
-	fmt.Printf("[SMS MESSAGE] user: %v\n", user)
 	if user.Phone == "" {
 		isGuest = true
 	} else {
@@ -202,7 +201,10 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 
 	// Get the random code
 	code := getRandomCode()
-	fmt.Printf("[SMS MESSAGE] isGuest: %v, code = %v\n", isGuest, code)
+	logrus.WithFields(logrus.Fields{
+		"isGuest": isGuest,
+		"code":    code,
+	}).Info("发送验证码信息")
 	respCode, err := sms.SendSMS(ctx, phone, code, isGuest)
 	if err != nil {
 		Response500(w, err.Error())
@@ -213,5 +215,10 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 		Response500(w, "短信发送失败")
 		return
 	}
-	Response200(w, "短信发送成功")
+	logrus.WithFields(logrus.Fields{
+		"isGuest": isGuest,
+		"code":    code,
+		"phone":   phone,
+	}).Info("发送验证码成功")
+	Response200(w, "验证码发送成功")
 }

@@ -83,8 +83,11 @@ func main() {
 
 		// Get a DeviceController instance
 		deviceController := controller.NewDeviceController()
+		// 查询用户所有的净化器设备
+		router.HandleFunc("/api/device", deviceController.GetDevices)
 		router.HandleFunc("/api/device/add", deviceController.BindDeviceWithUser).
 			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}")
+		// 净化器使用的接口，不需要登录
 		router.HandleFunc("/api/device/started", deviceController.IsStarted).
 			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}")
 		router.HandleFunc("/api/device/on", deviceController.On).
@@ -94,9 +97,9 @@ func main() {
 		router.HandleFunc("/api/device/setting", deviceController.SetCarName).
 			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}", "carname", "{carname}")
 		router.HandleFunc("/api/device/setting", deviceController.SetSPhone).
-			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}", "sphone", "{sphone[0-9]+}")
+			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}", "sphone", "{sphone:[0-9]+}")
 		router.HandleFunc("/api/device/setting", deviceController.SetRPhone).
-			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}", "rphone", "{rphone[0-9]}+")
+			Queries("deviceid", "{deviceid:[a-zA-Z0-9]{10}}", "rphone", "{rphone:[0-9]+}")
 
 		// Start the server
 		addr := fmt.Sprintf("0.0.0.0:%s", c.GlobalString("port"))

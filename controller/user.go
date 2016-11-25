@@ -77,7 +77,7 @@ func (uc UserController) SetNickName(w http.ResponseWriter, r *http.Request) {
 		Response500(w, "更新NickName失败")
 		return
 	}
-	Response500(w, "更新NickName成功")
+	Response200(w, "更新NickName成功")
 	return
 }
 

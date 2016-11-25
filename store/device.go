@@ -21,18 +21,17 @@ func AddDevice(p model.Device) (string, error) {
 }
 
 // GetDeviceByID 根据设备ID获取设备的信息
-func GetDeviceByID(id string) *model.Device {
-	objid := bson.ObjectIdHex(id)
+func GetDeviceByID(device_id string) *model.Device {
 	device := new(model.Device)
 	query := func(c *mgo.Collection) error {
-		return c.FindId(objid).One(&device)
+		return c.Find(bson.M{"device_id": device_id}).One(&device)
 	}
 	witchCollection("device", query)
 	return device
 }
 
 // GetDeviceByUserID 根据userID获取所有的设备
-func GetDeviceByUserID(userID string) ([]model.Device, error) {
+func GetDeviceByUserID(userID int64) ([]model.Device, error) {
 	var datas []model.Device
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"user_id": userID}).All(&datas)

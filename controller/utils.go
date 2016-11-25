@@ -80,3 +80,17 @@ func isLogin(r *http.Request) (string, bool) {
 	}
 	return "", false
 }
+
+func Contains(values []string, value string) bool {
+	if len(value) == 0 {
+		return false
+	}
+
+	for _, i := range values {
+		if i == value {
+			return true
+		}
+	}
+
+	return false
+}
