@@ -29,13 +29,13 @@ func NewUserController() *UserController {
 func (uc UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 	phone, ok := isLogin(r)
 	if !ok {
-		Response200(w, "请您登录先登录系统")
+		Response400(w, "请您登录先登录系统")
 		return
 	}
 
 	user := store.GetUserByPhone(phone)
 	if user.Phone == "" {
-		Response200(w, "用户不存在，请您先注册系统")
+		Response400(w, "用户不存在，请您先注册系统")
 		return
 	}
 
@@ -60,7 +60,7 @@ func (uc UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 func (uc UserController) SetNickName(w http.ResponseWriter, r *http.Request) {
 	phone, ok := isLogin(r)
 	if !ok {
-		Response200(w, "请您登录先登录系统")
+		Response400(w, "请您登录先登录系统")
 		return
 	}
 
@@ -84,7 +84,7 @@ func (uc UserController) SetNickName(w http.ResponseWriter, r *http.Request) {
 func (uc UserController) SetRealName(w http.ResponseWriter, r *http.Request) {
 	phone, ok := isLogin(r)
 	if !ok {
-		Response200(w, "请您登录先登录系统")
+		Response400(w, "请您登录先登录系统")
 		return
 	}
 

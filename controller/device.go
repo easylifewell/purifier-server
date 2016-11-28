@@ -25,13 +25,13 @@ func NewDeviceController() *DeviceController {
 func (uc DeviceController) GetDevices(w http.ResponseWriter, r *http.Request) {
 	phone, ok := isLogin(r)
 	if !ok {
-		Response200(w, "请您登录先登录系统")
+		Response400(w, "请您登录先登录系统")
 		return
 	}
 
 	user := store.GetUserByPhone(phone)
 	if user.Phone == "" {
-		Response200(w, "用户不存在，请您先注册系统")
+		Response400(w, "用户不存在，请您先注册系统")
 		return
 	}
 
@@ -59,13 +59,13 @@ func (uc DeviceController) GetDevices(w http.ResponseWriter, r *http.Request) {
 func (uc DeviceController) BindDeviceWithUser(w http.ResponseWriter, r *http.Request) {
 	phone, ok := isLogin(r)
 	if !ok {
-		Response200(w, "请您登录先登录系统")
+		Response400(w, "请您登录先登录系统")
 		return
 	}
 
 	user := store.GetUserByPhone(phone)
 	if user.Phone == "" {
-		Response200(w, "用户不存在，请您先注册系统")
+		Response400(w, "用户不存在，请您先注册系统")
 		return
 	}
 
@@ -114,7 +114,7 @@ func (uc DeviceController) BindDeviceWithUser(w http.ResponseWriter, r *http.Req
 func (uc DeviceController) SetCarName(w http.ResponseWriter, r *http.Request) {
 	_, ok := isLogin(r)
 	if !ok {
-		Response200(w, "请您登录先登录系统")
+		Response400(w, "请您登录先登录系统")
 		return
 	}
 
@@ -147,7 +147,7 @@ func (uc DeviceController) SetCarName(w http.ResponseWriter, r *http.Request) {
 func (uc DeviceController) SetSPhone(w http.ResponseWriter, r *http.Request) {
 	_, ok := isLogin(r)
 	if !ok {
-		Response200(w, "请您登录先登录系统")
+		Response400(w, "请您登录先登录系统")
 		return
 	}
 
@@ -184,7 +184,7 @@ func (uc DeviceController) SetSPhone(w http.ResponseWriter, r *http.Request) {
 func (uc DeviceController) SetRPhone(w http.ResponseWriter, r *http.Request) {
 	_, ok := isLogin(r)
 	if !ok {
-		Response200(w, "请您登录先登录系统")
+		Response400(w, "请您登录先登录系统")
 		return
 	}
 
@@ -221,7 +221,7 @@ func (uc DeviceController) SetRPhone(w http.ResponseWriter, r *http.Request) {
 func (uc DeviceController) On(w http.ResponseWriter, r *http.Request) {
 	_, ok := isLogin(r)
 	if !ok {
-		Response200(w, "请您登录先登录系统")
+		Response400(w, "请您登录先登录系统")
 		return
 	}
 
@@ -249,7 +249,7 @@ func (uc DeviceController) On(w http.ResponseWriter, r *http.Request) {
 func (uc DeviceController) Off(w http.ResponseWriter, r *http.Request) {
 	_, ok := isLogin(r)
 	if !ok {
-		Response200(w, "请您登录先登录系统")
+		Response400(w, "请您登录先登录系统")
 		return
 	}
 
