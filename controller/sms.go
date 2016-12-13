@@ -37,7 +37,7 @@ func (dc SMSController) Login(w http.ResponseWriter, r *http.Request) {
 		logrus.WithFields(logrus.Fields{
 			"user.phone": phone,
 		}).Info("利用Cookie登录成功")
-		Response200(w, "利用Cookie登录成功")
+		Response200(w, "登录成功")
 		return
 	}
 
@@ -63,7 +63,7 @@ func (dc SMSController) Login(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if user.Phone == "" {
 		fmt.Printf("用户 %s 尚未注册，并登录\n", user.Phone)
-		Response400(w, "尚未注册，请先进行注册")
+		Response400(w, "您尚未注册，请先进行注册")
 		return
 
 	} else {
@@ -84,7 +84,7 @@ func (dc SMSController) Register(w http.ResponseWriter, r *http.Request) {
 		logrus.WithFields(logrus.Fields{
 			"user.phone": phone,
 		}).Info("利用Cookie登录成功")
-		Response200(w, "利用Cookie登录成功")
+		Response200(w, "登录成功")
 		return
 	}
 
@@ -164,7 +164,7 @@ func (dc SMSController) SendSMS(w http.ResponseWriter, r *http.Request) {
 		logrus.WithFields(logrus.Fields{
 			"user.phone": phone,
 		}).Info("利用Cookie登录成功")
-		Response200(w, "利用Cookie登录成功")
+		Response200(w, "登录成功")
 		return
 	}
 

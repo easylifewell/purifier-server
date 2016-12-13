@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/easylifewell/purifier-server/store"
 )
 
