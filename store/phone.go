@@ -25,7 +25,7 @@ func register(guest *model.Guest) (*model.User, error) {
 	user.SMSCode = guest.SMSCode
 	user.SMSChangeDate = guest.SMSChangeDate
 	user.SMSSendDate = guest.SMSSendDate
-	user.NickName = GetNickName()
+	user.NickName = guest.Phone
 	user.RealName = ""
 	user.Password = guest.Password
 	user.CreateDate = time.Now()
